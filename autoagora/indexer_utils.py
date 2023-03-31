@@ -1,6 +1,7 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+import asyncio
 import json
 import logging
 from numbers import Number
@@ -36,12 +37,18 @@ def hex_to_ipfs_hash(hex: str) -> str:
     backoff.expo, aiohttp.ClientError, max_time=30, logger=logging.root
 )
 async def query_indexer_agent(query: str, variables: Optional[Mapping] = None):
-    async with Client(
-        transport=AIOHTTPTransport(args.indexer_agent_mgmt_endpoint),
-        fetch_schema_from_transport=False,
-    ) as session:
-        result = await session.execute(gql(query), variable_values=variables)  # type: ignore
-    return result
+    for i in range(3, 0, -1):
+        try:
+            async with Client(
+                    transport=AIOHTTPTransport(args.indexer_agent_mgmt_endpoint),
+                    fetch_schema_from_transport=False,
+            ) as session:
+                result = await session.execute(gql(query), variable_values=variables)  # type: ignore
+            return result
+        except asyncio.exceptions.TimeoutError:
+            logging.exception("query_indexer_agent: asyncio.exceptions.TimeoutError. Retries left - %s", i - 1)
+            continue
+        break
 
 
 async def get_indexed_subgraphs() -> Set[str]:
@@ -73,7 +80,7 @@ async def get_allocated_subgraphs() -> Set[str]:
 
 
 async def set_cost_model(
-    subgraph: str, model: Optional[str] = None, variables: Optional[Mapping] = None
+        subgraph: str, model: Optional[str] = None, variables: Optional[Mapping] = None
 ):
     """Send Agora cost model and/or variables for a subgraph to the indexer-agent.
 
