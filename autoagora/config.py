@@ -112,6 +112,18 @@ def init_config(argv: Optional[Sequence[str]] = None):
     )
 
     #
+    # DEFAULT_COST
+    #
+    argparser.add_argument(
+        "--default-cost",
+        env_var="DEFAULT_COST",
+        required=False,
+        default=50,
+        type=int,
+        help="DEFAULT_COST value",
+    )
+
+    #
     # Query volume metrics
     #
     argparser.add_argument(

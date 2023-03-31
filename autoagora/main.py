@@ -16,7 +16,7 @@ from autoagora.price_multiplier import price_bandit_loop
 
 init_config()
 
-DEFAULT_AGORA_VARIABLES = {"DEFAULT_COST": 50}
+DEFAULT_AGORA_VARIABLES = {"DEFAULT_COST": args.default_cost}
 
 
 @dataclass
